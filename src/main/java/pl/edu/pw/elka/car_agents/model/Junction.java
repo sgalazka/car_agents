@@ -9,6 +9,7 @@ public class Junction {
 
     private Road[] roads;
     private Boolean[] trafficLights;
+    private Coordinates centerCoordinates;
 
     public Road[] getRoads() {
         return roads;
@@ -24,5 +25,13 @@ public class Junction {
 
     public void setTrafficLights(Boolean[] trafficLights) {
         this.trafficLights = trafficLights;
+    }
+
+    public Coordinates getCenterCoordinates() {
+        return centerCoordinates;
+    }
+
+    public void setCenterCoordinates(Coordinates centerCoordinates) {
+        this.centerCoordinates = centerCoordinates;
     }
 }
