@@ -5,6 +5,11 @@ public class Car {
     private Coordinates coordinates;
     private float velocity;
 
+    public Car(Coordinates coordinates, float velocity) {
+        this.coordinates = coordinates;
+        this.velocity = velocity;
+    }
+
 
     public Coordinates getCoordinates() {
         return coordinates;

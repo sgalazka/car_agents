@@ -1,5 +1,6 @@
 package pl.edu.pw.elka.car_agents.gui;
 
+import pl.edu.pw.elka.car_agents.model.Car;
 import pl.edu.pw.elka.car_agents.model.Coordinates;
 import pl.edu.pw.elka.car_agents.model.Lane;
 import pl.edu.pw.elka.car_agents.model.Road;
@@ -7,16 +8,23 @@ import pl.edu.pw.elka.car_agents.model.Road;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
+
+import static java.awt.Color.*;
 
 public class Gui extends JPanel {
     private static final int ROAD_THICKNESS = 10;
     private static final int LANE_THICKNESS = 2;
+    private static Color[] carColors = {BLUE, RED, GREEN, CYAN, YELLOW};
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Road r = createRoad();
         drawRoad(r, (Graphics2D) g);
+        drawCar(new Car(new Coordinates(5, 10), 0f), (Graphics2D) g);
 
     }
 
@@ -37,20 +45,27 @@ public class Gui extends JPanel {
         frame.setVisible(true);
     }
 
-    public void drawRoad(Road road, Graphics2D graphics){
+    private void drawRoad(Road road, Graphics2D graphics){
         graphics.setStroke(new BasicStroke(ROAD_THICKNESS));
         graphics.setColor(Color.BLACK);
         graphics.draw(new Line2D.Float(road.getStartCoordinates().getX(), road.getStartCoordinates().getY(),
                 road.getEndCoordinates().getX(), road.getEndCoordinates().getY()));
 
-        road.getLanes().stream().forEach(l -> drawLane(l, graphics));
+        road.getLanes().forEach(l -> drawLane(l, graphics));
+
     }
 
-    public void drawLane(Lane lane, Graphics2D graphics){
+    private void drawLane(Lane lane, Graphics2D graphics){
         graphics.setStroke(new BasicStroke(LANE_THICKNESS));
         graphics.setColor(Color.WHITE);
         graphics.draw(new Line2D.Float(lane.getStartCoordinates().getX(), lane.getStartCoordinates().getY(),
                 lane.getEndCoordinates().getX(), lane.getEndCoordinates().getY()));
+    }
+
+    private void drawCar(Car car, Graphics2D graphics){
+        graphics.setStroke(new BasicStroke(LANE_THICKNESS));
+        graphics.setColor(carColors[ThreadLocalRandom.current().nextInt(0, carColors.length)]);
+        graphics.draw(new Rectangle.Float(car.getCoordinates().getX(), car.getCoordinates().getY(), 7, 5));
     }
 
     public static void main(String[] args) {
@@ -68,4 +83,6 @@ public class Gui extends JPanel {
         r.getLanes().add(l);
         return r;
     }
+
+
 }
