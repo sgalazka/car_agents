@@ -1,11 +1,15 @@
 package pl.edu.pw.elka.car_agents.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Road {
+    public List<Lane> getLanes() {
+        return lanes;
+    }
 
     private List<Car[]> carsOnLanes;
-    private Lane[] lanes;
+    private List<Lane> lanes = new ArrayList<>();
     private Coordinates startCoordinates;
     private Coordinates endCoordinates;
 
@@ -17,13 +21,6 @@ public class Road {
         this.carsOnLanes = carsOnLanes;
     }
 
-    public Lane[] getLanes() {
-        return lanes;
-    }
-
-    public void setLanes(Lane[] lanes) {
-        this.lanes = lanes;
-    }
 
     public Coordinates getStartCoordinates() {
         return startCoordinates;
