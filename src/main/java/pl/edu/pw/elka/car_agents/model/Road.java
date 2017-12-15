@@ -9,6 +9,13 @@ public class Road {
     private Coordinates startCoordinates;
     private Coordinates endCoordinates;
 
+    public Road(List<Car[]> carsOnLanes, Lane[] lanes, Coordinates startCoordinates, Coordinates endCoordinates) {
+        this.carsOnLanes = carsOnLanes;
+        this.lanes = lanes;
+        this.startCoordinates = startCoordinates;
+        this.endCoordinates = endCoordinates;
+    }
+
     public List<Car[]> getCarsOnLanes() {
         return carsOnLanes;
     }
