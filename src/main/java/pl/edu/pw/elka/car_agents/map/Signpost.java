@@ -1,17 +1,18 @@
 package pl.edu.pw.elka.car_agents.map;
 
 import pl.edu.pw.elka.car_agents.model.Junction;
+import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 
 public class Signpost {
 
-    private Direction direction;
+    private CarDirection direction;
     private Junction junction;
 
-    public Direction getDirection() {
+    public CarDirection getDirection() {
         return direction;
     }
 
-    public void setDirection(Direction direction) {
+    public void setDirection(CarDirection direction) {
         this.direction = direction;
     }
 

@@ -2,6 +2,7 @@ package pl.edu.pw.elka.car_agents.map;
 
 import pl.edu.pw.elka.car_agents.model.Junction;
 import pl.edu.pw.elka.car_agents.model.Road;
+import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class RoadNetwork {
         this.roads = roads;
     }
 
-    public static RoadNetwork getInstance(String fileName) {
+    public static synchronized RoadNetwork getInstance(String fileName) {
         if (instance == null) {
             instance = new FakeGraphReader(fileName).getMap(fileName); // TODO: 2017-12-06 podmienić na prawdziwą implementację
         }
@@ -37,7 +38,7 @@ public class RoadNetwork {
     public Signpost[] getPath(Road start, Road End) {
         List<Signpost> fakeData = new ArrayList<>();
         Signpost fakeSignpost = new Signpost();
-        fakeSignpost.setDirection(Direction.FORWARD);
+        fakeSignpost.setDirection(CarDirection.NORTH);
         fakeSignpost.setJunction(new Junction());
         fakeData.add(fakeSignpost);
         return (Signpost[]) fakeData.toArray();
