@@ -39,22 +39,22 @@ public class JunctionUtils {
         if (direction == Junction.UP) {
             Coordinates coordinates = junction.getCenterCoordinates();
             int yFromCenterToBorder = junction.getRoads()[(direction + 1) % 3].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
-            int y = yFromCenterToBorder + coordinates.getY();
+            int y = coordinates.getY() - yFromCenterToBorder;
             return new Coordinates(coordinates.getX(), y);
         } else if (direction == Junction.DOWN) {
             Coordinates coordinates = junction.getCenterCoordinates();
             int yFromCenterToBorder = junction.getRoads()[(direction + 1) % 3].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
-            int y = yFromCenterToBorder - coordinates.getY();
+            int y = coordinates.getY() - yFromCenterToBorder;
             return new Coordinates(coordinates.getX(), y);
         } else if (direction == Junction.RIGHT) {
             Coordinates coordinates = junction.getCenterCoordinates();
             int xFromCenterToBorder = junction.getRoads()[(direction + 1) % 3].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
-            int x = xFromCenterToBorder + coordinates.getX();
+            int x = coordinates.getX() + xFromCenterToBorder;
             return new Coordinates(x, coordinates.getY());
         } else if (direction == Junction.LEFT) {
             Coordinates coordinates = junction.getCenterCoordinates();
             int xFromCenterToBorder = junction.getRoads()[(direction + 1) % 3].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
-            int x = xFromCenterToBorder - coordinates.getX();
+            int x = coordinates.getX() - xFromCenterToBorder;
             return new Coordinates(x, coordinates.getY());
         }
         throw new IllegalArgumentException("Direction is wrong: " + direction);

@@ -2,6 +2,7 @@ package pl.edu.pw.elka.car_agents.actor;
 
 import akka.actor.AbstractActorWithTimers;
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -16,6 +17,7 @@ import scala.concurrent.duration.Duration;
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -25,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class RootActor extends AbstractActorWithTimers implements OnWindowCloseListener {
 
     public final static int EXIT_SYSTEM_CAR_ID = -1;
-    private static Object TICK = "TICK";
+    private static Object REFRESHH_VIEW_TICK = "REFRESHH_VIEW_TICK";
+    private static Object ADD_NEW_CAR_TICK = "ADD_NEW_CAR_TICK";
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private static int currentCarId = 0;
     private RoadNetwork roadNetwork;
@@ -37,12 +40,17 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
         return Props.create(RootActor.class);
     }
 
+    public RootActor() {
+        this.carCoordinatesMap = new HashMap<>();
+    }
+
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(StartSystemMsg.class, this::onStartSystem)
                 .match(FirstTickMsg.class, this::onFirstTick)
-                .match(TickMsg.class, this::onTick)
+                .match(RefreshViewMsg.class, this::refreshView)
+                .match(AddNewCarMsg.class, this::addNewCar)
                 .match(GetCoordinatesResponce.class, this::onGetCoordinatesResponce)
                 .build();
     }
@@ -67,26 +75,25 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
         }
 
 
-        getTimers().startSingleTimer(TICK, new FirstTickMsg(),
+        getTimers().startSingleTimer(REFRESHH_VIEW_TICK, new FirstTickMsg(),
                 Duration.create(3, TimeUnit.SECONDS));
     }
 
     private void onFirstTick(FirstTickMsg msg) {
-        getTimers().startPeriodicTimer(TICK, new TickMsg(),
+        getTimers().startPeriodicTimer(REFRESHH_VIEW_TICK, new RefreshViewMsg(),
                 Duration.create(Configuration.REFRESH_VIEW_MILIS, TimeUnit.MILLISECONDS));
-    }
-
-    private void onTick(TickMsg msg) {
-        log.debug("onTick");
-        if (currentCarId <= maxCarCount)
-            addNewCar();
-        List<CarCoordinates> carCoordinatesList = new ArrayList<>(carCoordinatesMap.values());
-        blockingQueueToView.add(carCoordinatesList);
+        getTimers().startPeriodicTimer(ADD_NEW_CAR_TICK, new AddNewCarMsg(),
+                Duration.create(Configuration.ADD_NEXT_CAR_MILIS, TimeUnit.MILLISECONDS));
     }
 
     private final BlockingQueue<List<CarCoordinates>> blockingQueueToView = new LinkedBlockingQueue();
 
-    public RootActor() {
+    private void refreshView(RefreshViewMsg msg) {
+        log.debug("refreshView");
+        ActorSelection actorSelection = getContext().actorSelection("../root/car*");
+        actorSelection.tell(new CarActor.GetCoordinatesRequest(), getSelf());
+        List<CarCoordinates> carCoordinatesList = new ArrayList<>(carCoordinatesMap.values());
+        blockingQueueToView.add(carCoordinatesList);
     }
 
     private void onGetCoordinatesResponce(GetCoordinatesResponce responce) {
@@ -105,9 +112,12 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
         carCoordinatesMap.put(carCoordinates.getCarId(), carCoordinates);
     }
 
-    private void addNewCar() {
-
-        ActorRef actorRef = getContext().actorOf(CarActor.props(currentCarId++, inOutJunctions[0], inOutJunctions[1]));
+    private void addNewCar(AddNewCarMsg msg) {
+        if (currentCarId <= maxCarCount) {
+            int newCarId = currentCarId++;
+            ActorRef actorRef = getContext().actorOf(CarActor.props(newCarId, inOutJunctions[0], inOutJunctions[1]), "car" + newCarId);
+            actorRef.tell(new CarActor.StartMsg(), getSelf());
+        }
     }
 
     public static class StartSystemMsg {
@@ -125,7 +135,11 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
 
     }
 
-    public static class TickMsg {
+    public static class RefreshViewMsg {
+
+    }
+
+    public static class AddNewCarMsg {
 
     }
 

@@ -1,5 +1,7 @@
 package pl.edu.pw.elka.car_agents.model;
 
+import java.util.Arrays;
+
 public class Junction {
 
     public final static int UP = 0;
@@ -62,5 +64,16 @@ public class Junction {
 
     public void setInOut(boolean inOut) {
         isInOut = inOut;
+    }
+
+    @Override
+    public String toString() {
+        return "Junction{" +
+                "id=" + id +
+                ", roads=" + Arrays.toString(roads) +
+                ", trafficLights=" + Arrays.toString(trafficLights) +
+                ", centerCoordinates=" + centerCoordinates.toString() +
+                ", isInOut=" + isInOut +
+                '}';
     }
 }

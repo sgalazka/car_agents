@@ -35,7 +35,7 @@ public class CarCoordinates {
     @Override
     public String toString() {
         return "CarCoordinates{" +
-                "coordinates=" + coordinates +
+                "coordinates=" + coordinates.toString() +
                 ", direction=" + direction +
                 ", CarId=" + CarId +
                 '}';

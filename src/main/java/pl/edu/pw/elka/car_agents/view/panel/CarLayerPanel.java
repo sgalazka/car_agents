@@ -38,10 +38,11 @@ public class CarLayerPanel extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
+        System.out.println("CarLayerPanel::paintComponent");
         if (carCoordinates == null)
             return;
-        ((Graphics2D) g).drawImage(texture, 200, 200, carWidth, carHeight, null);
         for (CarCoordinates carCoordinate : carCoordinates) {
+            System.out.println("CarLayerPanel::paintComponent coordinate: " + carCoordinate.toString());
             int x = carCoordinate.getCoordinates().getX();
             int y = carCoordinate.getCoordinates().getY();
             if (carCoordinate.getDirection().equals(CarDirection.NORTH)) {

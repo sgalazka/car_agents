@@ -52,29 +52,29 @@ public class MapPanel extends JPanel {
             for (int j = i + 1; j < junctions.length; j++) {
                 if (i == j)
                     continue;
-                System.out.println("junctions: " + i + ":" + j);
-                System.out.println("junctions[i].getRoads()[Junction.UP]: " + junctions[i].getRoads()[Junction.UP]);
-                System.out.println("junctions[j].getRoads()[Junction.DOWN]: " + junctions[j].getRoads()[Junction.DOWN]);
+                //System.out.println("junctions: " + i + ":" + j);
+                //System.out.println("junctions[i].getRoads()[Junction.UP]: " + junctions[i].getRoads()[Junction.UP]);
+                //System.out.println("junctions[j].getRoads()[Junction.DOWN]: " + junctions[j].getRoads()[Junction.DOWN]);
                 if (junctions[i].getRoads()[Junction.UP] == junctions[j].getRoads()[Junction.DOWN]) {
-                    System.out.println("junctions[i].getRoads()[Junction.UP] == junctions[j].getRoads()[Junction.DOWN]");
+                    //System.out.println("junctions[i].getRoads()[Junction.UP] == junctions[j].getRoads()[Junction.DOWN]");
                     int centerX = junctions[i].getCenterCoordinates().getX();
                     int startY = getMaxY(junctions[i]);
                     int endY = getMinY(junctions[j]);
                     drawLanesVertically(g2d, junctions, i, centerX, startY, endY);
                 } else if (junctions[i].getRoads()[Junction.RIGHT] == junctions[j].getRoads()[Junction.LEFT]) {
-                    System.out.println("junctions[i].getRoads()[Junction.RIGHT] == junctions[j].getRoads()[Junction.LEFT]");
+                    //System.out.println("junctions[i].getRoads()[Junction.RIGHT] == junctions[j].getRoads()[Junction.LEFT]");
                     int centerY = junctions[i].getCenterCoordinates().getY();
                     int startX = getMaxX(junctions[i]);
                     int endX = getMinX(junctions[j]);
                     drawLanesHorizontally(g2d, junctions, i, centerY, startX, endX);
                 } else if (junctions[i].getRoads()[Junction.DOWN] == junctions[j].getRoads()[Junction.UP]) {
-                    System.out.println("junctions[i].getRoads()[Junction.DOWN] == junctions[j].getRoads()[Junction.UP]");
+                    //System.out.println("junctions[i].getRoads()[Junction.DOWN] == junctions[j].getRoads()[Junction.UP]");
                     int centerX = junctions[i].getCenterCoordinates().getX();
                     int startY = getMaxY(junctions[j]);
                     int endY = getMinY(junctions[i]);
                     drawLanesVertically(g2d, junctions, i, centerX, startY, endY);
                 } else if (junctions[i].getRoads()[Junction.LEFT] == junctions[j].getRoads()[Junction.RIGHT]) {
-                    System.out.println("junctions[i].getRoads()[Junction.LEFT] == junctions[j].getRoads()[Junction.RIGHT]");
+                    //System.out.println("junctions[i].getRoads()[Junction.LEFT] == junctions[j].getRoads()[Junction.RIGHT]");
                     int centerY = junctions[i].getCenterCoordinates().getY();
                     int startX = getMaxX(junctions[j]);
                     int endX = getMinX(junctions[i]);

@@ -34,6 +34,8 @@ public class CarActor extends AbstractActorWithTimers {
         this.y = entrance.getCenterCoordinates().getY();
         this.currentRoad = getCurrentRoad(entrance);
         this.currentDirection = getStartDirection(entrance.getCenterCoordinates());
+//        ActorSelection selection = getContext().actorSelection("akka://car-agents/user/root/car");
+//        selection.tell(new Identify(id), getSelf());
     }
 
     public static Props props(int id, Junction entrance, Junction exit) {
@@ -42,7 +44,7 @@ public class CarActor extends AbstractActorWithTimers {
 
     private Road getCurrentRoad(Junction entrance) {
         for (Road road : entrance.getRoads()) {
-            if (road != null)
+            if (road != null && road.getOneDirectionNumberOfLanes() > 0)
                 return road;
         }
         throw new IllegalArgumentException("No road in entry junction");
@@ -58,7 +60,7 @@ public class CarActor extends AbstractActorWithTimers {
     }
 
     private void onStartMsg(StartMsg msg) {
-        getTimers().startPeriodicTimer(TICK, new RootActor.TickMsg(),
+        getTimers().startPeriodicTimer(TICK, new TickMsg(),
                 Duration.create(Configuration.MOVE_CAR_MILIS, TimeUnit.MILLISECONDS));
     }
 
@@ -83,10 +85,15 @@ public class CarActor extends AbstractActorWithTimers {
         if (entryCoordinates.equals(junctions[0].getCenterCoordinates())) {
             finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[1], currentRoad);
         } else if (entryCoordinates.equals(junctions[1].getCenterCoordinates())) {
-            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[1], currentRoad);
+            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[0], currentRoad);
         }
         if (finalCoordinates == null)
             throw new IllegalArgumentException("Wrong entry coordinates");
+
+        System.out.println("junctions[0]: " + junctions[0].toString());
+        System.out.println("junctions[1]: " + junctions[1].toString());
+        System.out.println("entryCoordinates: " + entryCoordinates.toString());
+        System.out.println("finalCoordinates: " + finalCoordinates.toString());
 
         int startX = entryCoordinates.getX();
         int startY = entryCoordinates.getY();
@@ -107,6 +114,7 @@ public class CarActor extends AbstractActorWithTimers {
 
     private void move() {
         float distance = speed * Configuration.MOVE_CAR_MILIS / 1000;
+//        System.out.println("distance: " + distance);
         if (CarDirection.NORTH == currentDirection) {
             y += distance;
         } else if (CarDirection.EAST == currentDirection) {
@@ -116,6 +124,7 @@ public class CarActor extends AbstractActorWithTimers {
         } else if (CarDirection.WEST == currentDirection) {
             x -= distance;
         }
+//        System.out.println("x: " + x + ", y: " + y);
     }
 
     public static class StartMsg {
