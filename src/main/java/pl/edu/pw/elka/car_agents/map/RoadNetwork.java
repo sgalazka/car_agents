@@ -7,6 +7,8 @@ import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 import java.util.ArrayList;
 import java.util.List;
 
+import static pl.edu.pw.elka.car_agents.Configuration.ROADNETWORK_FILENAME;
+
 public class RoadNetwork {
 
     private static RoadNetwork instance;
@@ -20,9 +22,9 @@ public class RoadNetwork {
         this.roads = roads;
     }
 
-    public static synchronized RoadNetwork getInstance(String fileName) {
+    public static synchronized RoadNetwork getInstance() {
         if (instance == null) {
-            instance = new FakeGraphReader(fileName).getMap(fileName); // TODO: 2017-12-06 podmienić na prawdziwą implementację
+            instance = new FakeGraphReader(ROADNETWORK_FILENAME).getMap(ROADNETWORK_FILENAME); // TODO: 2017-12-06 podmienić na prawdziwą implementację
         }
         return instance;
     }
@@ -42,5 +44,16 @@ public class RoadNetwork {
         fakeSignpost.setJunction(new Junction());
         fakeData.add(fakeSignpost);
         return (Signpost[]) fakeData.toArray();
+    }
+
+    public Junction[] getInOutJunctions() {
+        ArrayList<Junction> list = new ArrayList<>();
+        for (Junction junction : junctions) {
+            if (junction.isInOut())
+                list.add(junction);
+        }
+        Junction[] junctions = new Junction[list.size()];
+        junctions = list.toArray(junctions);
+        return junctions;
     }
 }

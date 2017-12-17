@@ -1,5 +1,6 @@
 package pl.edu.pw.elka.car_agents.view;
 
+import pl.edu.pw.elka.car_agents.Configuration;
 import pl.edu.pw.elka.car_agents.map.RoadNetwork;
 import pl.edu.pw.elka.car_agents.view.model.CarCoordinates;
 import pl.edu.pw.elka.car_agents.view.panel.CarLayerPanel;
@@ -13,8 +14,6 @@ import java.util.List;
 
 public class SwingRoadNetworkView extends RoadNetworkView {
 
-    public final static int HEIGHT = 1000;
-    public final static int WIDTH = 1700;
     private JFrame mainFrame;
     private MapPanel mapPanel;
     private CarLayerPanel carLayerPanel;
@@ -27,8 +26,8 @@ public class SwingRoadNetworkView extends RoadNetworkView {
         this.carLayerPanel = new CarLayerPanel();
         JPanel layeredPane = new JPanel();
         layeredPane.setLayout(null);
-        mapPanel.setBounds(0, 0, WIDTH, HEIGHT);
-        carLayerPanel.setBounds(0, 0, WIDTH, HEIGHT);
+        mapPanel.setBounds(0, 0, Configuration.WIDTH, Configuration.HEIGHT);
+        carLayerPanel.setBounds(0, 0, Configuration.WIDTH, Configuration.HEIGHT);
 //        mainFrame.setSize(new Dimension(1700, 1000));
         layeredPane.add(carLayerPanel);
         layeredPane.add(mapPanel);

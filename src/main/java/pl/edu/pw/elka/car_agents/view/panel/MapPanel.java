@@ -1,10 +1,9 @@
 package pl.edu.pw.elka.car_agents.view.panel;
 
-import pl.edu.pw.elka.car_agents.Main;
+import pl.edu.pw.elka.car_agents.Configuration;
 import pl.edu.pw.elka.car_agents.map.RoadNetwork;
 import pl.edu.pw.elka.car_agents.model.Junction;
 import pl.edu.pw.elka.car_agents.util.SwingUtils;
-import pl.edu.pw.elka.car_agents.view.SwingRoadNetworkView;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -44,7 +43,7 @@ public class MapPanel extends JPanel {
     }
 
     private void drawBackground(Graphics2D g2d) {
-        g2d.drawImage(images[0], 0, 0, SwingRoadNetworkView.WIDTH, SwingRoadNetworkView.HEIGHT, null);
+        g2d.drawImage(images[0], 0, 0, Configuration.WIDTH, Configuration.HEIGHT, null);
     }
 
     private void drawRoads(Graphics2D g2d) {
@@ -86,27 +85,27 @@ public class MapPanel extends JPanel {
     }
 
     private void drawLanesHorizontally(Graphics2D g2d, Junction[] junctions, int i, int centerY, int startX, int endX) {
-        for (int distanceX = startX; distanceX - Main.LANE_WIDTH < endX; distanceX += Main.LANE_WIDTH) {
-            for (int i1 = 0; i1 < junctions[i].getRoads()[Junction.UP].getLanes().length / 2; i1++) {
-                boolean isTheLastLane = i1 == junctions[i].getRoads()[Junction.UP].getLanes().length / 2 - 1;
+        for (int distanceX = startX; distanceX - Configuration.LANE_WIDTH < endX; distanceX += Configuration.LANE_WIDTH) {
+            for (int i1 = 0; i1 < junctions[i].getRoads()[Junction.UP].getOneDirectionNumberOfLanes(); i1++) {
+                boolean isTheLastLane = i1 == junctions[i].getRoads()[Junction.UP].getOneDirectionNumberOfLanes() - 1;
                 BufferedImage lanesTexture = isTheLastLane ? lanesTextures[2] : lanesTextures[i1];
-                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI / 2), distanceX, centerY + i1 * Main.LANE_WIDTH,
-                        Main.LANE_WIDTH, Main.LANE_WIDTH, null);
-                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI * 1.5), distanceX, centerY - (i1 + 1) * Main.LANE_WIDTH,
-                        Main.LANE_WIDTH, Main.LANE_WIDTH, null);
+                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI / 2), distanceX, centerY + i1 * Configuration.LANE_WIDTH,
+                        Configuration.LANE_WIDTH, Configuration.LANE_WIDTH, null);
+                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI * 1.5), distanceX, centerY - (i1 + 1) * Configuration.LANE_WIDTH,
+                        Configuration.LANE_WIDTH, Configuration.LANE_WIDTH, null);
             }
         }
     }
 
     private void drawLanesVertically(Graphics2D g2d, Junction[] junctions, int i, int centerX, int startY, int endY) {
-        for (int distanceY = startY; distanceY - Main.LANE_WIDTH < endY; distanceY += Main.LANE_WIDTH) {
-            for (int i1 = 0; i1 < junctions[i].getRoads()[Junction.UP].getLanes().length / 2; i1++) {
-                boolean isTheLastLane = i1 == junctions[i].getRoads()[Junction.UP].getLanes().length / 2 - 1;
+        for (int distanceY = startY; distanceY - Configuration.LANE_WIDTH < endY; distanceY += Configuration.LANE_WIDTH) {
+            for (int i1 = 0; i1 < junctions[i].getRoads()[Junction.UP].getOneDirectionNumberOfLanes(); i1++) {
+                boolean isTheLastLane = i1 == junctions[i].getRoads()[Junction.UP].getOneDirectionNumberOfLanes() - 1;
                 BufferedImage lanesTexture = isTheLastLane ? lanesTextures[2] : lanesTextures[i1];
-                g2d.drawImage(lanesTexture, centerX + i1 * Main.LANE_WIDTH, distanceY,
-                        Main.LANE_WIDTH, Main.LANE_WIDTH, null);
-                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI), centerX - (i1 + 1) * Main.LANE_WIDTH, distanceY,
-                        Main.LANE_WIDTH, Main.LANE_WIDTH, null);
+                g2d.drawImage(lanesTexture, centerX + i1 * Configuration.LANE_WIDTH, distanceY,
+                        Configuration.LANE_WIDTH, Configuration.LANE_WIDTH, null);
+                g2d.drawImage(SwingUtils.rotate(lanesTexture, Math.PI), centerX - (i1 + 1) * Configuration.LANE_WIDTH, distanceY,
+                        Configuration.LANE_WIDTH, Configuration.LANE_WIDTH, null);
             }
         }
     }
@@ -114,32 +113,58 @@ public class MapPanel extends JPanel {
     private void drawJunctions(Graphics2D g2d) {
 
         for (Junction junction : roadNetwork.getJunctions()) {
-            int lanesHorizontally = junction.getRoads()[Junction.LEFT].getLanes().length;
-            int lanesVertically = junction.getRoads()[Junction.UP].getLanes().length;
-            int startX = junction.getCenterCoordinates().getX() - (lanesHorizontally * Main.LANE_WIDTH) / 2;
-            int startY = junction.getCenterCoordinates().getY() - (lanesVertically * Main.LANE_WIDTH) / 2;
+            if (junction.isInOut())
+                continue;
+            int lanesHorizontally = junction.getRoads()[Junction.LEFT].getOneDirectionNumberOfLanes() * 2;
+            int lanesVertically = junction.getRoads()[Junction.UP].getOneDirectionNumberOfLanes() * 2;
+            int startX = junction.getCenterCoordinates().getX() - (lanesHorizontally * Configuration.LANE_WIDTH) / 2;
+            int startY = junction.getCenterCoordinates().getY() - (lanesVertically * Configuration.LANE_WIDTH) / 2;
             for (int i = 0; i < lanesHorizontally; i++) {
                 for (int j = 0; j < lanesVertically; j++) {
-                    g2d.drawImage(images[1], startX + i * Main.LANE_WIDTH, startY + j * Main.LANE_WIDTH,
-                            Main.LANE_WIDTH, Main.LANE_WIDTH, null);
+                    g2d.drawImage(images[1], startX + i * Configuration.LANE_WIDTH, startY + j * Configuration.LANE_WIDTH,
+                            Configuration.LANE_WIDTH, Configuration.LANE_WIDTH, null);
                 }
             }
         }
     }
 
     private int getMaxX(Junction junction) {
-        return junction.getCenterCoordinates().getX() + junction.getRoads()[Junction.UP].getLanes().length * Main.LANE_WIDTH / 2;
+        int maxX = 0;
+        try {
+            maxX = junction.getCenterCoordinates().getX() + junction.getRoads()[Junction.UP].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
+        } catch (NullPointerException e) {
+            return maxX;
+        }
+        return junction.getCenterCoordinates().getX();
     }
 
     private int getMinX(Junction junction) {
-        return junction.getCenterCoordinates().getX() - junction.getRoads()[Junction.UP].getLanes().length * Main.LANE_WIDTH / 2;
+        int minX = 0;
+        try {
+            minX = junction.getCenterCoordinates().getX() - junction.getRoads()[Junction.UP].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
+        } catch (NullPointerException e) {
+            return minX;
+        }
+        return junction.getCenterCoordinates().getX();
     }
 
     private int getMaxY(Junction junction) {
-        return junction.getCenterCoordinates().getY() + junction.getRoads()[Junction.RIGHT].getLanes().length * Main.LANE_WIDTH / 2;
+        int maxY = 0;
+        try {
+            maxY = junction.getCenterCoordinates().getY() + junction.getRoads()[Junction.RIGHT].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
+        } catch (NullPointerException e) {
+            return maxY;
+        }
+        return junction.getCenterCoordinates().getY();
     }
 
     private int getMinY(Junction junction) {
-        return junction.getCenterCoordinates().getY() - junction.getRoads()[Junction.RIGHT].getLanes().length * Main.LANE_WIDTH / 2;
+        int maxY = 0;
+        try {
+            maxY = junction.getCenterCoordinates().getY() - junction.getRoads()[Junction.RIGHT].getOneDirectionNumberOfLanes() * Configuration.LANE_WIDTH;
+        } catch (NullPointerException e) {
+            return maxY;
+        }
+        return junction.getCenterCoordinates().getY();
     }
 }
