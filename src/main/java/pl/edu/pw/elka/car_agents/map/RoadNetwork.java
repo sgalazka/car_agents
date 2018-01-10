@@ -37,13 +37,13 @@ public class RoadNetwork {
         return roads;
     }
 
-    public Signpost[] getPath(Road start, Road End) {
+    public List<Signpost> getPath(Road start, Road End) {
         List<Signpost> fakeData = new ArrayList<>();
         Signpost fakeSignpost = new Signpost();
         fakeSignpost.setDirection(CarDirection.NORTH);
         fakeSignpost.setJunction(new Junction());
         fakeData.add(fakeSignpost);
-        return (Signpost[]) fakeData.toArray();
+        return fakeData;
     }
 
     public Junction[] getInOutJunctions() {

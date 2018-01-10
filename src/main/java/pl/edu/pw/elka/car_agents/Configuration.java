@@ -9,5 +9,7 @@ public abstract class Configuration {
     public final static int HEIGHT = 1000;
     public final static int WIDTH = 1700;
     public final static int LANE_WIDTH = 20;
+    public static int CAR_HEIGHT = (int) (LANE_WIDTH * 0.7 * 2.5);
+    public static int CAR_WIDTH = (int) (LANE_WIDTH * 0.6);
     public final static String ROADNETWORK_FILENAME = "";
 }

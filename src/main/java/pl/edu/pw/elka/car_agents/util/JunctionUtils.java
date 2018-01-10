@@ -59,4 +59,12 @@ public class JunctionUtils {
         }
         throw new IllegalArgumentException("Direction is wrong: " + direction);
     }
+
+    public static Road getRoadForInOutJunction(Junction inOutJunction) {
+        for (Road road : inOutJunction.getRoads()) {
+            if (road != null && road.getOneDirectionNumberOfLanes() > 0)
+                return road;
+        }
+        throw new IllegalArgumentException("No road in entry junction");
+    }
 }

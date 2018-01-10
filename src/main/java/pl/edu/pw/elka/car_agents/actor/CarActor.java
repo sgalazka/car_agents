@@ -3,6 +3,8 @@ package pl.edu.pw.elka.car_agents.actor;
 import akka.actor.AbstractActorWithTimers;
 import akka.actor.Props;
 import pl.edu.pw.elka.car_agents.Configuration;
+import pl.edu.pw.elka.car_agents.map.RoadNetwork;
+import pl.edu.pw.elka.car_agents.map.Signpost;
 import pl.edu.pw.elka.car_agents.model.Coordinates;
 import pl.edu.pw.elka.car_agents.model.Junction;
 import pl.edu.pw.elka.car_agents.model.Road;
@@ -11,6 +13,8 @@ import pl.edu.pw.elka.car_agents.view.model.CarCoordinates;
 import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 import scala.concurrent.duration.Duration;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 public class CarActor extends AbstractActorWithTimers {
@@ -23,31 +27,29 @@ public class CarActor extends AbstractActorWithTimers {
     private float y;
     private CarDirection currentDirection;
     private Road currentRoad;
+    private int currentLane; /*numerowane od 1*/
     private int speed = Configuration.CAR_SPEED;
+    private float distanceToRoadEnd;
+    private Queue<Signpost> signposts;
 
     private CarActor(int id, Junction entrance, Junction exit) throws IllegalArgumentException {
 
         this.id = id;
         this.entrance = entrance;
         this.exit = exit;
-        this.x = entrance.getCenterCoordinates().getX();
-        this.y = entrance.getCenterCoordinates().getY();
-        this.currentRoad = getCurrentRoad(entrance);
+        this.x = getStartX();
+        this.y = getStartY();
+        this.currentRoad = JunctionUtils.getRoadForInOutJunction(entrance);
         this.currentDirection = getStartDirection(entrance.getCenterCoordinates());
-//        ActorSelection selection = getContext().actorSelection("akka://car-agents/user/root/car");
-//        selection.tell(new Identify(id), getSelf());
+        this.currentLane = currentRoad.getOneDirectionNumberOfLanes();
+        distanceToRoadEnd = getDistanceToEndOfRoad() - Configuration.CAR_HEIGHT / 2;
+        signposts = new LinkedList<Signpost>(RoadNetwork.getInstance().getPath(
+                JunctionUtils.getRoadForInOutJunction(entrance),
+                JunctionUtils.getRoadForInOutJunction(exit)));
     }
 
     public static Props props(int id, Junction entrance, Junction exit) {
         return Props.create(CarActor.class, () -> new CarActor(id, entrance, exit));
-    }
-
-    private Road getCurrentRoad(Junction entrance) {
-        for (Road road : entrance.getRoads()) {
-            if (road != null && road.getOneDirectionNumberOfLanes() > 0)
-                return road;
-        }
-        throw new IllegalArgumentException("No road in entry junction");
     }
 
     @Override
@@ -65,7 +67,18 @@ public class CarActor extends AbstractActorWithTimers {
     }
 
     private void onTick(TickMsg msg) {
-        move();
+        if (!isEndOfRoad()) {
+            move();
+        } else {
+            requestJunctionDrive();
+            getTimers().cancel(TICK);
+        }
+    }
+
+    private void requestJunctionDrive() {
+        // TODO: 2018-01-10 wiadomośc do konkretnego skrzyżowania o identyfikatorze "juntcionId"
+//        ActorSelection actorSelection = getContext().actorSelection("../root/junction"+junctionId);
+//        actorSelection.tell(new CarActor.GetCoordinatesRequest(), getSelf());
     }
 
     private void onGetCoordinatesRequest(GetCoordinatesRequest request) {
@@ -82,13 +95,7 @@ public class CarActor extends AbstractActorWithTimers {
         Coordinates finalCoordinates = null;
         Junction[] junctions = JunctionUtils.getJunctionsForRoad(currentRoad);
 
-        if (entryCoordinates.equals(junctions[0].getCenterCoordinates())) {
-            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[1], currentRoad);
-        } else if (entryCoordinates.equals(junctions[1].getCenterCoordinates())) {
-            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[0], currentRoad);
-        }
-        if (finalCoordinates == null)
-            throw new IllegalArgumentException("Wrong entry coordinates");
+        finalCoordinates = getRoadFinalCoordinates(entryCoordinates, junctions);
 
         System.out.println("junctions[0]: " + junctions[0].toString());
         System.out.println("junctions[1]: " + junctions[1].toString());
@@ -112,8 +119,39 @@ public class CarActor extends AbstractActorWithTimers {
         }
     }
 
+    private Coordinates getRoadFinalCoordinates(Coordinates entryCoordinates, Junction[] junctions) {
+        Coordinates finalCoordinates = null;
+        if (entryCoordinates.equals(junctions[0].getCenterCoordinates())) {
+            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[1], currentRoad);
+        } else if (entryCoordinates.equals(junctions[1].getCenterCoordinates())) {
+            finalCoordinates = JunctionUtils.getBorderForRoadOnJunction(junctions[0], currentRoad);
+        }
+        if (finalCoordinates == null)
+            throw new IllegalArgumentException("Wrong entry coordinates");
+        return finalCoordinates;
+    }
+
+    private float getDistanceToEndOfRoad() {
+        Junction[] junctions = JunctionUtils.getJunctionsForRoad(currentRoad);
+        Coordinates[] endsOfRoadCoordinates = new Coordinates[2];
+        if (junctions.length < 2)
+            throw new IllegalArgumentException("Road has no end");
+        endsOfRoadCoordinates[0] = JunctionUtils.getBorderForRoadOnJunction(junctions[0], currentRoad);
+        endsOfRoadCoordinates[1] = JunctionUtils.getBorderForRoadOnJunction(junctions[1], currentRoad);
+        for (Coordinates endsOfRoadCoordinate : endsOfRoadCoordinates) {
+            System.out.println("endsOfRoadCoordinate " + endsOfRoadCoordinate.toString());
+        }
+        if (endsOfRoadCoordinates[0].getX() == endsOfRoadCoordinates[1].getX()) {
+            return Math.abs(endsOfRoadCoordinates[0].getY() - endsOfRoadCoordinates[1].getY());
+        } else if (endsOfRoadCoordinates[0].getY() == endsOfRoadCoordinates[1].getY()) {
+            return Math.abs(endsOfRoadCoordinates[0].getX() - endsOfRoadCoordinates[1].getX());
+        }
+        throw new IllegalArgumentException("Junctions has none equal coordinate");
+    }
+
     private void move() {
         float distance = speed * Configuration.MOVE_CAR_MILIS / 1000;
+        distanceToRoadEnd -= distance;
 //        System.out.println("distance: " + distance);
         if (CarDirection.NORTH == currentDirection) {
             y += distance;
@@ -125,6 +163,44 @@ public class CarActor extends AbstractActorWithTimers {
             x -= distance;
         }
 //        System.out.println("x: " + x + ", y: " + y);
+    }
+
+    private float getStartX() {
+        Coordinates centerCoordinates = entrance.getCenterCoordinates();
+        for (int i = 0; i < entrance.getRoads().length; i++) {
+            int oneDirectionNumberOfLanes = entrance.getRoads()[i].getOneDirectionNumberOfLanes();
+            if (oneDirectionNumberOfLanes > 0) {
+                if (i == Junction.UP) {
+                    return centerCoordinates.getX() + Configuration.LANE_WIDTH * oneDirectionNumberOfLanes - Configuration.CAR_WIDTH / 2;
+                } else if (i == Junction.DOWN) {
+                    return centerCoordinates.getX() - Configuration.LANE_WIDTH * oneDirectionNumberOfLanes + Configuration.CAR_WIDTH / 2;
+                } else {
+                    return centerCoordinates.getX();
+                }
+            }
+        }
+        throw new IllegalArgumentException("Junction with no lanes");
+    }
+
+    private float getStartY() {
+        Coordinates centerCoordinates = entrance.getCenterCoordinates();
+        for (int i = 0; i < entrance.getRoads().length; i++) {
+            int oneDirectionNumberOfLanes = entrance.getRoads()[i].getOneDirectionNumberOfLanes();
+            if (oneDirectionNumberOfLanes > 0) {
+                if (i == Junction.RIGHT) {
+                    return centerCoordinates.getY() + Configuration.LANE_WIDTH * oneDirectionNumberOfLanes - Configuration.CAR_WIDTH / 2;
+                } else if (i == Junction.LEFT) {
+                    return centerCoordinates.getY() - Configuration.LANE_WIDTH * oneDirectionNumberOfLanes + Configuration.CAR_WIDTH / 2;
+                } else {
+                    return centerCoordinates.getY();
+                }
+            }
+        }
+        throw new IllegalArgumentException("Junction with no lanes");
+    }
+
+    private boolean isEndOfRoad() {
+        return distanceToRoadEnd <= 5;
     }
 
     public static class StartMsg {

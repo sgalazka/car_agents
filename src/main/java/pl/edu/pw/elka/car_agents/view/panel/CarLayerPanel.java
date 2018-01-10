@@ -16,8 +16,6 @@ import java.util.List;
 public class CarLayerPanel extends JPanel {
 
     private List<CarCoordinates> carCoordinates;
-    private int carWidth = (int) (Configuration.LANE_WIDTH * 0.8);
-    private int carHeight = (int) (Configuration.LANE_WIDTH * 0.8 * 2.5);
     private BufferedImage texture;
 
     public CarLayerPanel() {
@@ -46,13 +44,13 @@ public class CarLayerPanel extends JPanel {
             int x = carCoordinate.getCoordinates().getX();
             int y = carCoordinate.getCoordinates().getY();
             if (carCoordinate.getDirection().equals(CarDirection.NORTH)) {
-                ((Graphics2D) g).drawImage(texture, x - carWidth / 2, y - carHeight, carWidth, carHeight, null);
+                ((Graphics2D) g).drawImage(texture, x - Configuration.CAR_WIDTH / 2, y - Configuration.CAR_HEIGHT, Configuration.CAR_WIDTH, Configuration.CAR_HEIGHT, null);
             } else if (carCoordinate.getDirection().equals(CarDirection.EAST)) {
-                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI * 0.5), x - carHeight / 2, y - carWidth, carHeight, carWidth, null);
+                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI * 0.5), x - Configuration.CAR_HEIGHT / 2, y - Configuration.CAR_WIDTH, Configuration.CAR_HEIGHT, Configuration.CAR_WIDTH, null);
             } else if (carCoordinate.getDirection().equals(CarDirection.SOUTH)) {
-                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI), x - carWidth / 2, y - carHeight, carWidth, carHeight, null);
+                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI), x - Configuration.CAR_WIDTH / 2, y - Configuration.CAR_HEIGHT, Configuration.CAR_WIDTH, Configuration.CAR_HEIGHT, null);
             } else if (carCoordinate.getDirection().equals(CarDirection.WEST)) {
-                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI * 1.5), x - carHeight / 2, y - carWidth, carHeight, carWidth, null);
+                ((Graphics2D) g).drawImage(SwingUtils.rotate(texture, Math.PI * 1.5), x - Configuration.CAR_HEIGHT / 2, y - Configuration.CAR_WIDTH, Configuration.CAR_HEIGHT, Configuration.CAR_WIDTH, null);
             }
         }
     }
