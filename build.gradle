@@ -14,3 +14,7 @@ dependencies {
     compile group: 'com.typesafe.akka', name: 'akka-actor_2.12', version: '2.5.7'
     testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.7'
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0'
+}
