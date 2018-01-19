@@ -2,6 +2,7 @@ group 'pl.elka.wsd.car-agents'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
@@ -17,4 +18,12 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.0'
+}
+
+mainClassName = "pl.edu.pw.elka.car_agents.Main"
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'pl.edu.pw.elka.car_agents.Main'
+    }
 }
