@@ -1,9 +1,14 @@
 package pl.edu.pw.elka.car_agents.actor;
 
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.TimeUnit;
+
+import akka.actor.AbstractActor;
 import akka.actor.AbstractActorWithTimers;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
 import pl.edu.pw.elka.car_agents.Configuration;
-import pl.edu.pw.elka.car_agents.map.RoadNetwork;
 import pl.edu.pw.elka.car_agents.map.Signpost;
 import pl.edu.pw.elka.car_agents.model.Coordinates;
 import pl.edu.pw.elka.car_agents.model.Junction;
@@ -13,11 +18,11 @@ import pl.edu.pw.elka.car_agents.view.model.CarCoordinates;
 import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 import scala.concurrent.duration.Duration;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.TimeUnit;
-
 public class CarActor extends AbstractActorWithTimers {
+
+    private AbstractActor.Receive waitingForJunction;
+    private AbstractActor.Receive drive;
+    private AbstractActor.Receive stopedByCarInFrontOfMe;
 
     private final static Object TICK = "TICK";
     private int id;
@@ -28,67 +33,139 @@ public class CarActor extends AbstractActorWithTimers {
     private CarDirection currentDirection;
     private Road currentRoad;
     private int currentLane; /*numerowane od 1*/
-    private int speed = Configuration.CAR_SPEED;
+    private int speed;
+    private int initSpeed;
     private float distanceToRoadEnd;
     private Queue<Signpost> signposts;
+    private Junction nextJunction;
 
-    private CarActor(int id, Junction entrance, Junction exit) throws IllegalArgumentException {
+    private CarActor(int id, Junction entrance, Junction exit, Integer speed, Queue<Signpost> signposts) throws IllegalArgumentException {
+        System.out.println(getSelf().path());
+        System.out.println(getSelf().path().address().toString());
+        this.waitingForJunction = receiveBuilder()
+            .match(JunctionActor.JunctionClear.class, this::onJunctionClear)
+            .match(JunctionActor.DriveThroughJunction.class, this::onDriveThroughJuntion)
+            .match(TickMsg.class, this::onTick)
+            .build();
+        this.drive = receiveBuilder()
+            .match(StartMsg.class, this::onStartMsg)
+            .match(TickMsg.class, this::onTick)
+            .match(GetCoordinatesRequest.class, this::onGetCoordinatesRequest)
+            .match(RootActor.GetCoordinatesResponse.class, this::onGetCoordinatesResponse)
+            .build();
+
+        this.stopedByCarInFrontOfMe = receiveBuilder()
+            .match(TickMsg.class, this::onTickWhenStopped)
+            .build();
 
         this.id = id;
         this.entrance = entrance;
         this.exit = exit;
-        this.x = getStartX();
-        this.y = getStartY();
         this.currentRoad = JunctionUtils.getRoadForInOutJunction(entrance);
         this.currentDirection = getStartDirection(entrance.getCenterCoordinates());
+        this.x = getStartX(this.entrance);
+        this.y = getStartY(this.entrance);
         this.currentLane = currentRoad.getOneDirectionNumberOfLanes();
+        this.speed = speed;
+        this.initSpeed = speed;
+        // FIXME: 20.01.18 to nie powinno być tak
+        this.nextJunction = Arrays.stream(JunctionUtils.getJunctionsForRoad(this.currentRoad))
+            .filter(junction -> junction != entrance)
+            .findFirst()
+            .orElseThrow(RuntimeException::new);
         distanceToRoadEnd = getDistanceToEndOfRoad() - Configuration.CAR_HEIGHT / 2;
-        signposts = new LinkedList<Signpost>(RoadNetwork.getInstance().getPath(
-                JunctionUtils.getRoadForInOutJunction(entrance),
-                JunctionUtils.getRoadForInOutJunction(exit)));
+        this.signposts = signposts;
     }
 
-    public static Props props(int id, Junction entrance, Junction exit) {
-        return Props.create(CarActor.class, () -> new CarActor(id, entrance, exit));
+    private void onTickWhenStopped(TickMsg tickMsg) {
+
+    }
+
+    private void onDriveThroughJuntion(JunctionActor.DriveThroughJunction driveThroughJunction) {
+        this.signposts.remove();
+        this.currentRoad = driveThroughJunction.road;
+        Junction junction1 = Arrays.stream(JunctionUtils.getJunctionsForRoad(this.currentRoad))
+            .filter(junction -> junction != this.nextJunction)
+            .findFirst().get();
+        this.currentDirection = getStartDirection(this.nextJunction.getCenterCoordinates());
+        this.x = getStartX(nextJunction);
+        this.y = getStartY(nextJunction);
+        this.nextJunction = junction1;
+        this.distanceToRoadEnd = getDistanceToEndOfRoad() - Configuration.CAR_HEIGHT / 2;
+        getContext().become(drive);
+        getContext().getSystem().scheduler().scheduleOnce(Duration.create(1, TimeUnit.SECONDS),
+            sender(), new JunctionActor.ReleaseJunction(), context().system().dispatcher(), null);
+        this.speed = initSpeed;
+    }
+
+    private void onJunctionClear(JunctionActor.JunctionClear junctionClear) {
+        if (junctionClear.getJuntionId().equals(nextJunction.getId())) {
+            sender().tell(new JunctionActor.RequestJunctionDriveMsg(signposts.element().getDirection()), getSelf());
+        }
+    }
+
+    public static Props props(int id, Junction entrance, Junction exit, Integer speed, Queue<Signpost> signpost) {
+        return Props.create(CarActor.class, () -> new CarActor(id, entrance, exit, speed, signpost));
     }
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
-                .match(StartMsg.class, this::onStartMsg)
-                .match(TickMsg.class, this::onTick)
-                .match(GetCoordinatesRequest.class, this::onGetCoordinatesRequest)
-                .build();
+        return drive;
     }
 
+    private void onGetCoordinatesResponse(RootActor.GetCoordinatesResponse getCoordinatesResponse) {
+        CarCoordinates coordinates = getCoordinatesResponse.getCoordinates();
+        // FIXME: 21.01.18 dodać kierunek
+        if (this.currentRoad == getCoordinatesResponse.getRoad()) {
+            if (coordinates.getCoordinates().getX() > x && coordinates.getCoordinates().getX() - x <= 100
+                && coordinates.getCoordinates().getY() == (int) y && speed >= getCoordinatesResponse.getSpeed()) {
+                speed = getCoordinatesResponse.getSpeed();
+            } else if (coordinates.getCoordinates().getY() - y <= 100 && coordinates.getCoordinates().getX() == (int) x
+                && speed >= getCoordinatesResponse.getSpeed()) {
+                speed = getCoordinatesResponse.getSpeed();
+            }
+            if (speed == 0) {
+                getContext().become(stopedByCarInFrontOfMe);
+            }
+        }
+    }
     private void onStartMsg(StartMsg msg) {
         getTimers().startPeriodicTimer(TICK, new TickMsg(),
                 Duration.create(Configuration.MOVE_CAR_MILIS, TimeUnit.MILLISECONDS));
     }
 
     private void onTick(TickMsg msg) {
+        System.out.println(this.y);
         if (!isEndOfRoad()) {
             move();
         } else {
-            requestJunctionDrive();
-            getTimers().cancel(TICK);
+            // FIXME: 20.01.18
+            speed = 0;
+            getContext().become(waitingForJunction);
+//            getTimers().cancel(TICK);
         }
-    }
 
-    private void requestJunctionDrive() {
-        // TODO: 2018-01-10 wiadomośc do konkretnego skrzyżowania o identyfikatorze "juntcionId"
-//        ActorSelection actorSelection = getContext().actorSelection("../root/junction"+junctionId);
-//        actorSelection.tell(new CarActor.GetCoordinatesRequest(), getSelf());
+        // FIXME: 20.01.18 only to carAgents
+        ActorSelection actorSelection = getContext().actorSelection("../*");
+        actorSelection.tell(createGetCoordinatesResponse(), getSelf());
+//        mediator.tell(new DistributedPubSubMediator.Publish("coordinates", createGetCoordinatesResponse()), getSelf());
     }
 
     private void onGetCoordinatesRequest(GetCoordinatesRequest request) {
-        RootActor.GetCoordinatesResponce responce = new RootActor.GetCoordinatesResponce();
+        RootActor.GetCoordinatesResponse response = createGetCoordinatesResponse();
+        getSender().tell(response, getSelf());
+    }
+
+    private RootActor.GetCoordinatesResponse createGetCoordinatesResponse() {
+        RootActor.GetCoordinatesResponse response = new RootActor.GetCoordinatesResponse();
         CarCoordinates carCoordinates = new CarCoordinates();
         carCoordinates.setCarId(this.id);
         carCoordinates.setDirection(this.currentDirection);
         carCoordinates.setCoordinates(new Coordinates((int) x, (int) y));
-        responce.coordinates = carCoordinates;
-        getSender().tell(responce, getSelf());
+        response.setCoordinates(carCoordinates);
+        response.setSpeed(speed);
+        response.setRoad(currentRoad);
+        return response;
     }
 
     private CarDirection getStartDirection(Coordinates entryCoordinates) throws IllegalArgumentException {
@@ -131,6 +208,7 @@ public class CarActor extends AbstractActorWithTimers {
         return finalCoordinates;
     }
 
+    // FIXME: 20.01.18 to nie powinno tak się nazywać, działa tylko w przypadku gdy jesteśmy na początku drogi
     private float getDistanceToEndOfRoad() {
         Junction[] junctions = JunctionUtils.getJunctionsForRoad(currentRoad);
         Coordinates[] endsOfRoadCoordinates = new Coordinates[2];
@@ -152,7 +230,6 @@ public class CarActor extends AbstractActorWithTimers {
     private void move() {
         float distance = speed * Configuration.MOVE_CAR_MILIS / 1000;
         distanceToRoadEnd -= distance;
-//        System.out.println("distance: " + distance);
         if (CarDirection.NORTH == currentDirection) {
             y += distance;
         } else if (CarDirection.EAST == currentDirection) {
@@ -162,41 +239,32 @@ public class CarActor extends AbstractActorWithTimers {
         } else if (CarDirection.WEST == currentDirection) {
             x -= distance;
         }
-//        System.out.println("x: " + x + ", y: " + y);
     }
 
-    private float getStartX() {
-        Coordinates centerCoordinates = entrance.getCenterCoordinates();
-        for (int i = 0; i < entrance.getRoads().length; i++) {
-            int oneDirectionNumberOfLanes = entrance.getRoads()[i].getOneDirectionNumberOfLanes();
-            if (oneDirectionNumberOfLanes > 0) {
-                if (i == Junction.UP) {
-                    return centerCoordinates.getX() + Configuration.LANE_WIDTH * oneDirectionNumberOfLanes - Configuration.CAR_WIDTH / 2;
-                } else if (i == Junction.DOWN) {
-                    return centerCoordinates.getX() - Configuration.LANE_WIDTH * oneDirectionNumberOfLanes + Configuration.CAR_WIDTH / 2;
-                } else {
-                    return centerCoordinates.getX();
-                }
-            }
+    private float getStartX(Junction junction) {
+        Coordinates centerCoordinates = junction.getCenterCoordinates();
+
+        if (this.currentDirection.equals(CarDirection.SOUTH)) {
+            return centerCoordinates.getX() + Configuration.LANE_WIDTH * currentRoad.getOneDirectionNumberOfLanes()
+                - Configuration.CAR_WIDTH / 2;
+        } else if (this.currentDirection.equals(CarDirection.NORTH)) {
+            return centerCoordinates.getX() - Configuration.LANE_WIDTH * currentRoad.getOneDirectionNumberOfLanes()
+                + Configuration.CAR_WIDTH / 2;
         }
-        throw new IllegalArgumentException("Junction with no lanes");
+        return centerCoordinates.getX();
     }
 
-    private float getStartY() {
-        Coordinates centerCoordinates = entrance.getCenterCoordinates();
-        for (int i = 0; i < entrance.getRoads().length; i++) {
-            int oneDirectionNumberOfLanes = entrance.getRoads()[i].getOneDirectionNumberOfLanes();
-            if (oneDirectionNumberOfLanes > 0) {
-                if (i == Junction.RIGHT) {
-                    return centerCoordinates.getY() + Configuration.LANE_WIDTH * oneDirectionNumberOfLanes - Configuration.CAR_WIDTH / 2;
-                } else if (i == Junction.LEFT) {
-                    return centerCoordinates.getY() - Configuration.LANE_WIDTH * oneDirectionNumberOfLanes + Configuration.CAR_WIDTH / 2;
-                } else {
-                    return centerCoordinates.getY();
-                }
-            }
+    private float getStartY(Junction junction) {
+        Coordinates centerCoordinates = junction.getCenterCoordinates();
+
+        if (this.currentDirection.equals(CarDirection.EAST)) {
+            return centerCoordinates.getY() + Configuration.LANE_WIDTH * currentRoad.getOneDirectionNumberOfLanes()
+                - Configuration.CAR_WIDTH / 2;
+        } else if (this.currentDirection.equals(CarDirection.WEST)) {
+            return centerCoordinates.getY() - Configuration.LANE_WIDTH * currentRoad.getOneDirectionNumberOfLanes()
+                + Configuration.CAR_WIDTH / 2;
         }
-        throw new IllegalArgumentException("Junction with no lanes");
+        return centerCoordinates.getY();
     }
 
     private boolean isEndOfRoad() {

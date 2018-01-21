@@ -1,11 +1,9 @@
 package pl.edu.pw.elka.car_agents.map;
 
+import java.util.ArrayList;
+
 import pl.edu.pw.elka.car_agents.model.Junction;
 import pl.edu.pw.elka.car_agents.model.Road;
-import pl.edu.pw.elka.car_agents.view.model.CarDirection;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static pl.edu.pw.elka.car_agents.Configuration.ROADNETWORK_FILENAME;
 
@@ -35,15 +33,6 @@ public class RoadNetwork {
 
     public Road[] getRoads() {
         return roads;
-    }
-
-    public List<Signpost> getPath(Road start, Road End) {
-        List<Signpost> fakeData = new ArrayList<>();
-        Signpost fakeSignpost = new Signpost();
-        fakeSignpost.setDirection(CarDirection.NORTH);
-        fakeSignpost.setJunction(new Junction());
-        fakeData.add(fakeSignpost);
-        return fakeData;
     }
 
     public Junction[] getInOutJunctions() {

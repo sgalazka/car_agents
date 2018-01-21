@@ -1,8 +1,12 @@
 package pl.edu.pw.elka.car_agents.map;
 
+import lombok.Builder;
+import lombok.Getter;
 import pl.edu.pw.elka.car_agents.model.Junction;
 import pl.edu.pw.elka.car_agents.view.model.CarDirection;
 
+@Builder
+@Getter
 public class Signpost {
 
     private CarDirection direction;

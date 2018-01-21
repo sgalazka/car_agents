@@ -2,6 +2,17 @@ package pl.edu.pw.elka.car_agents.model;
 
 import java.util.Arrays;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
 public class Junction {
 
     public final static int UP = 0;
@@ -15,57 +26,6 @@ public class Junction {
     private Coordinates centerCoordinates;
     private boolean isInOut;
 
-    public Junction() {
-    }
-
-    public Junction(int id, Road[] roads, Boolean[] trafficLights, Coordinates centerCoordinates, boolean isInOut) {
-        this.id = id;
-        this.roads = roads;
-        this.trafficLights = trafficLights;
-        this.centerCoordinates = centerCoordinates;
-        this.isInOut = isInOut;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Road[] getRoads() {
-        return roads;
-    }
-
-    public void setRoads(Road[] roads) {
-        this.roads = roads;
-    }
-
-    public Boolean[] getTrafficLights() {
-        return trafficLights;
-    }
-
-    public void setTrafficLights(Boolean[] trafficLights) {
-        this.trafficLights = trafficLights;
-    }
-
-    public Coordinates getCenterCoordinates() {
-        return centerCoordinates;
-    }
-
-    public void setCenterCoordinates(Coordinates centerCoordinates) {
-        this.centerCoordinates = centerCoordinates;
-    }
-
-    public boolean isInOut() {
-        return isInOut;
-    }
-
-    public void setInOut(boolean inOut) {
-        isInOut = inOut;
-    }
-
     @Override
     public String toString() {
         return "Junction{" +
@@ -76,4 +36,5 @@ public class Junction {
                 ", isInOut=" + isInOut +
                 '}';
     }
+
 }

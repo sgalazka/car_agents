@@ -62,6 +62,7 @@ public class JunctionUtils {
 
     public static Road getRoadForInOutJunction(Junction inOutJunction) {
         for (Road road : inOutJunction.getRoads()) {
+            // FIXME: 20.01.18 bierze pierwszą drogę w skrzyżowaniu, mało oczywiste
             if (road != null && road.getOneDirectionNumberOfLanes() > 0)
                 return road;
         }

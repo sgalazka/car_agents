@@ -11,8 +11,16 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'com.typesafe.akka', name: 'akka-actor_2.12', version: '2.5.7'
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.16.20'
+    compile 'com.typesafe.akka:akka-cluster_2.12:2.5.7'
+    compile 'com.typesafe.akka:akka-cluster-tools_2.12:2.5.7'
+    compile group: 'com.typesafe.akka', name: 'akka-slf4j_2.12', version: '2.5.7'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    compile 'com.google.guava:guava:23.6-jre'
+
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.7'
 }
 
