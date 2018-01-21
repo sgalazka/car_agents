@@ -132,7 +132,7 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
                         .direction(CarDirection.SOUTH)
                         .junction(allJuncions[1])
                         .build());
-                }}), "car" + 3), 10);
+                }}), "car" + 3), 13);
 //        scheduleOnceCreation(
 //            getContext().actorOf(CarActor.props(3, inOutJunctions[0], inOutJunctions[1], 130), "car" + 4), 4);
         }

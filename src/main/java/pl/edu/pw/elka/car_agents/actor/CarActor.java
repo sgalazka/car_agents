@@ -55,7 +55,7 @@ public class CarActor extends AbstractActorWithTimers {
             .build();
 
         this.stopedByCarInFrontOfMe = receiveBuilder()
-            .match(TickMsg.class, this::onTickWhenStopped)
+            .match(WarmUp.class, this::warmUp)
             .build();
 
         this.id = id;
@@ -77,9 +77,16 @@ public class CarActor extends AbstractActorWithTimers {
         this.signposts = signposts;
     }
 
+    private void warmUp(WarmUp warmUp) {
+        getContext().become(drive);
+        speed = initSpeed;
+    }
+
     private void onTickWhenStopped(TickMsg tickMsg) {
 
     }
+
+    public static class WarmUp {}
 
     private void onDriveThroughJuntion(JunctionActor.DriveThroughJunction driveThroughJunction) {
         this.signposts.remove();
@@ -126,6 +133,8 @@ public class CarActor extends AbstractActorWithTimers {
             }
             if (speed == 0) {
                 getContext().become(stopedByCarInFrontOfMe);
+                getContext().getSystem().scheduler().scheduleOnce(Duration.create(1, TimeUnit.SECONDS),
+                    getSelf(), new WarmUp(), context().system().dispatcher(), getSelf());
             }
         }
     }
@@ -135,14 +144,12 @@ public class CarActor extends AbstractActorWithTimers {
     }
 
     private void onTick(TickMsg msg) {
-        System.out.println(this.y);
         if (!isEndOfRoad()) {
             move();
         } else {
             // FIXME: 20.01.18
             speed = 0;
             getContext().become(waitingForJunction);
-//            getTimers().cancel(TICK);
         }
 
         // FIXME: 20.01.18 only to carAgents
