@@ -107,6 +107,10 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
                     .direction(CarDirection.NORTH)
                     .junction(allJuncions[1])
                     .build());
+                add(Signpost.builder()
+                    .direction(CarDirection.NORTH)
+                    .junction(allJuncions[6])
+                    .build());
             }}),
                 "car" + 0), 2);
         scheduleOnceCreation(
@@ -133,6 +137,160 @@ public class RootActor extends AbstractActorWithTimers implements OnWindowCloseL
                         .junction(allJuncions[1])
                         .build());
                 }}), "car" + 3), 13);
+
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(4, inOutJunctions[3], inOutJunctions[0], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.WEST)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 4), 1);
+
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(5, inOutJunctions[0], inOutJunctions[1], 100,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[6])
+                        .build());
+                }}),
+                "car" + 5), 10);
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(6, inOutJunctions[2], inOutJunctions[1], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 6), 10);
+
+
+
+
+
+
+
+
+
+
+
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(7, inOutJunctions[0], inOutJunctions[1], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[6])
+                        .build());
+                }}),
+                "car" + 7), 14);
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(8, inOutJunctions[2], inOutJunctions[1], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 8), 9);
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(9, inOutJunctions[3], inOutJunctions[0], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.WEST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 9), 16);
+
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(10, inOutJunctions[3], inOutJunctions[0], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.WEST)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 10), 13);
+
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(99, inOutJunctions[0], inOutJunctions[1], 100,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[1])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.NORTH)
+                        .junction(allJuncions[6])
+                        .build());
+                }}),
+                "car" + 99), 13);
+        scheduleOnceCreation(
+            getContext().actorOf(CarActor.props(100, inOutJunctions[2], inOutJunctions[1], 90,
+                new LinkedList<Signpost>(){{
+                    add(Signpost.builder()
+                        .direction(CarDirection.EAST)
+                        .junction(allJuncions[0])
+                        .build());
+                    add(Signpost.builder()
+                        .direction(CarDirection.SOUTH)
+                        .junction(allJuncions[1])
+                        .build());
+                }}), "car" + 100), 15);
 //        scheduleOnceCreation(
 //            getContext().actorOf(CarActor.props(3, inOutJunctions[0], inOutJunctions[1], 130), "car" + 4), 4);
         }
